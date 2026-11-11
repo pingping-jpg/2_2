@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리 집 냉장고</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="우리 집 냉장고">
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --text-main: #212529;
+      --text-sub: #6c757d;
+      --border-color: #e9ecef;
+      --primary: #2b8a3e;
+      --primary-light: #ebfbee;
+      --danger: #e03131;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1b4332;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .place-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .place-header {
+      background: #e9fac8;
+      background: linear-gradient(135deg, #e6fcf5 0%, #d3f9d8 100%);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .place-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .place-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2b8a3e;
+    }
+
+    .toggle-icon {
+      font-size: 0.9rem;
+      color: #40c057;
+      transition: transform 0.2s ease;
+    }
+
+    .place-section.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .place-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .place-section.collapsed .place-body {
+      display: none;
+    }
+
+    .btn-add {
+      background-color: #40c057;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-add:hover {
+      background-color: #2b8a3e;
+    }
+
+    .category-group {
+      background-color: #f8f9fa;
+      border-radius: var(--radius);
+      padding: 14px;
+      border: 1px solid #f1f3f5;
+    }
+
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .category-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #343a40;
+    }
+
+    .category-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-delete-cat {
+      background: none;
+      border: none;
+      color: #adb5bd;
+      font-size: 1.2rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-delete-cat:hover {
+      color: var(--danger);
+      background-color: #ffe3e3;
+    }
+
+    /* 식재료 카드 그리드 레이아웃 */
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 992px) {
+      .item-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .item-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .item-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* 식재료 가로 카드 스타일 */
+    .item-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .item-emoji {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .item-qty-btn {
+      align-self: flex-start;
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid #b2f2bb;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+
+    .item-qty-btn:hover {
+      background-color: #d3f9d8;
+    }
+
+    .btn-delete-item {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      background: none;
+      border: none;
+      color: #ced4da;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px;
+    }
+
+    .btn-delete-item:hover {
+      color: var(--danger);
+    }
+
+    .empty-msg {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      text-align: center;
+      padding: 12px 0;
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧊 우리 집 냉장고</h1>
+  </header>
+
+  <main id="app">
+    <!-- 보관 장소 및 분류 목록이 자바스크립트로 동적 출력됩니다 -->
+  </main>
+
+  <script>
+    // 이모지 자동 연결 규칙
+    const EMOJI_MAP = {
+      '돼지고기': '🐷',
+      '소고기': '🐮',
+      '닭고기': '🐔',
+      '고기': '🥩',
+      '생선': '🐟',
+      '사과': '🍎',
+      '바나나': '🍌',
+      '우유': '🥛',
+      '계란': '🥚',
+      '달걀': '🥚',
+      '치즈': '🧀',
+      '당근': '🥕',
+      '양파': '🧅',
+      '마늘': '🧄',
+      '대파': '🥬',
+      '파': '🥬',
+      '배추': '🥬',
+      '상추': '🥬',
+      '고추': '🌶️',
+      '토마토': '🍅',
+      '감자': '🥔',
+      '고구마': '🍠',
+      '옥수수': '🌽',
+      '버섯': '🍄',
+      '두부': '🧊',
+      '콩': '🫘',
+      '빵': '🍞',
+      '식빵': '🍞',
+      '라면': '🍜',
+      '면': '🍜',
+      '국수': '🍜',
+      '밀키트': '🍱',
+      '만두': '🥟',
+      '새우': '🦐',
+      '오징어': '🦑',
+      '게': '🦀',
+      '조개': '🐚',
+      '김치': '🥬',
+      '물': '💧',
+      '음료수': '🥤',
+      '음료': '🥤',
+      '맥주': '🍺',
+      '소주': '🍾',
+      '와인': '🍷',
+      '포도': '🍇',
+      '수박': '🍉',
+      '귤': '🍊',
+      '레몬': '🍋',
+      '딸기': '🍓',
+      '복숭아': '🍑',
+      '체리': '🍒',
+      '참외': '🍈',
+      '키위': '🥝',
+      '아보카도': '🥑',
+      '소스': '🧴',
+      '잼': '🍯',
+      '버터': '🧈'
+    };
+
+    const DEFAULT_EMOJI = '🥫';
+    const STORAGE_KEY = 'my_refrigerator_data_v1';
+
+    // 초기 보관 장소 구조
+    const initialData = [
+      { id: 'place-1', name: '냉장고', collapsed: false, categories: [] },
+      { id: 'place-2', name: '냉장실', collapsed: false, categories: [] },
+      { id: 'place-3', name: '신선실', collapsed: false, categories: [] },
+      { id: 'place-4', name: '실온 보관', collapsed: false, categories: [] }
+    ];
+
+    let storeData = [];
+
+    // 로컬스토리지 복원 또는 초기화
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          storeData = JSON.parse(saved);
+        } catch (e) {
+          storeData = initialData;
+        }
+      } else {
+        storeData = initialData;
+      }
+    }
+
+    // 로컬스토리지 자동 저장
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storeData));
+      render();
+    }
+
+    // 이모지 가져오기 규칙
+    function getEmoji(itemName) {
+      const trimmed = itemName.trim();
+      if (EMOJI_MAP[trimmed]) return EMOJI_MAP[trimmed];
+      
+      // 부분 일치 검사 (예: '맛있는 사과' -> '사과' 검색)
+      for (const key in EMOJI_MAP) {
+        if (trimmed.includes(key)) {
+          return EMOJI_MAP[key];
+        }
+      }
+      return DEFAULT_EMOJI;
+    }
+
+    // 보관 장소 토글 (접기/펼치기)
+    function togglePlace(placeId) {
+      const place = storeData.find(p => p.id === placeId);
+      if (place) {
+        place.collapsed = !place.collapsed;
+        saveData();
+      }
+    }
+
+    // 분류 추가
+    function addCategory(placeId, e) {
+      e.stopPropagation();
+      const catName = prompt('추가할 분류 이름을 입력하세요:');
+      if (!catName || !catName.trim()) return;
+
+      const place = storeData.find(p => p.id === placeId);
+      if (place) {
+        place.categories.push({
+          id: 'cat-' + Date.now(),
+          name: catName.trim(),
+          items: []
+        });
+        saveData();
+      }
+    }
+
+    // 분류 삭제
+    function deleteCategory(placeId, catId, catName, e) {
+      e.stopPropagation();
+      if (confirm(`'${catName}' 분류와 포함된 식재료를 모두 삭제하시겠습니까?`)) {
+        const place = storeData.find(p => p.id === placeId);
+        if (place) {
+          place.categories = place.categories.filter(c => c.id !== catId);
+          saveData();
+        }
+      }
+    }
+
+    // 식재료 추가
+    function addItem(placeId, catId, e) {
+      e.stopPropagation();
+      const itemName = prompt('식재료 이름을 입력하세요:');
+      if (!itemName || !itemName.trim()) return;
+
+      const qtyStr = prompt('수량을 입력하세요:', '1');
+      if (qtyStr === null) return;
+      const qty = parseInt(qtyStr, 10);
+
+      if (isNaN(qty) || qty <= 0) {
+        alert('올바른 수량을 입력해 주세요.');
+        return;
+      }
+
+      const place = storeData.find(p => p.id === placeId);
+      if (place) {
+        const cat = place.categories.find(c => c.id === catId);
+        if (cat) {
+          cat.items.push({
+            id: 'item-' + Date.now(),
+            name: itemName.trim(),
+            quantity: qty
+          });
+          saveData();
+        }
+      }
+    }
+
+    // 수량 변경
+    function updateQuantity(placeId, catId, itemId, e) {
+      e.stopPropagation();
+      const place = storeData.find(p => p.id === placeId);
+      if (!place) return;
+      const cat = place.categories.find(c => c.id === catId);
+      if (!cat) return;
+      const item = cat.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const newQtyStr = prompt(`'${item.name}'의 새로운 수량을 입력하세요:`, item.quantity);
+      if (newQtyStr === null) return;
+
+      const newQty = parseInt(newQtyStr, 10);
+      if (isNaN(newQty)) {
+        alert('숫자를 입력해 주세요.');
+        return;
+      }
+
+      if (newQty <= 0) {
+        // 수량이 0 이하이면 자동 삭제
+        cat.items = cat.items.filter(i => i.id !== itemId);
+      } else {
+        item.quantity = newQty;
+      }
+      saveData();
+    }
+
+    // 식재료 즉시 삭제 (× 버튼)
+    function deleteItem(placeId, catId, itemId, e) {
+      e.stopPropagation();
+      const place = storeData.find(p => p.id === placeId);
+      if (!place) return;
+      const cat = place.categories.find(c => c.id === catId);
+      if (!cat) return;
+
+      cat.items = cat.items.filter(i => i.id !== itemId);
+      saveData();
+    }
+
+    // 화면 렌더링
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = '';
+
+      storeData.forEach(place => {
+        const placeEl = document.createElement('section');
+        placeEl.className = `place-section ${place.collapsed ? 'collapsed' : ''}`;
+
+        // 보관 장소 헤더
+        const headerEl = document.createElement('div');
+        headerEl.className = 'place-header';
+        headerEl.onclick = () => togglePlace(place.id);
+
+        headerEl.innerHTML = `
+          <div class="place-title-group">
+            <span class="toggle-icon">▼</span>
+            <span class="place-title">${place.name}</span>
+          </div>
+          <button class="btn-add" onclick="addCategory('${place.id}', event)">+ 분류 추가</button>
+        `;
+
+        // 보관 장소 바디
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'place-body';
+
+        if (place.categories.length === 0) {
+          bodyEl.innerHTML = `<div class="empty-msg">오른쪽 '+ 분류 추가' 버튼을 눌러 분류를 만들어 보세요.</div>`;
+        } else {
+          place.categories.forEach(cat => {
+            const catEl = document.createElement('div');
+            catEl.className = 'category-group';
+
+            let itemsHtml = '';
+            if (cat.items.length === 0) {
+              itemsHtml = `<div class="empty-msg">등록된 식재료가 없습니다. '+ 식재료 추가'를 눌러 등록하세요.</div>`;
+            } else {
+              cat.items.forEach(item => {
+                const emoji = getEmoji(item.name);
+                itemsHtml += `
+                  <div class="item-card">
+                    <button class="btn-delete-item" onclick="deleteItem('${place.id}', '${cat.id}', '${item.id}', event)" title="삭제">×</button>
+                    <div class="item-emoji">${emoji}</div>
+                    <div class="item-info">
+                      <div class="item-name" title="${item.name}">${item.name}</div>
+                      <button class="item-qty-btn" onclick="updateQuantity('${place.id}', '${cat.id}', '${item.id}', event)">${item.quantity}개</button>
+                    </div>
+                  </div>
+                `;
+              });
+            }
+
+            catEl.innerHTML = `
+              <div class="category-header">
+                <span class="category-title">${cat.name}</span>
+                <div class="category-actions">
+                  <button class="btn-add" onclick="addItem('${place.id}', '${cat.id}', event)">+ 식재료 추가</button>
+                  <button class="btn-delete-cat" onclick="deleteCategory('${place.id}', '${cat.id}', '${cat.name}', event)" title="분류 삭제">×</button>
+                </div>
+              </div>
+              <div class="item-grid">
+                ${itemsHtml}
+              </div>
+            `;
+            bodyEl.appendChild(catEl);
+          });
+        }
+
+        placeEl.appendChild(headerEl);
+        placeEl.appendChild(bodyEl);
+        app.appendChild(placeEl);
+      });
+    }
+
+    // 앱 초기화
+    loadData();
+    render();
+  </script>
+</body>
+</html>
